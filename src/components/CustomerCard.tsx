@@ -1,24 +1,18 @@
-import { Customer } from "@/types/customer";
+import { CustomerData } from "@/hooks/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Phone, MapPin, Calendar, Wrench, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
-const contractLabels = {
-  full: "Full Contract",
-  limited: "Limited",
-  prefilter: "Pre Filter",
-};
-
 interface Props {
-  customer: Customer;
-  onSelect: (c: Customer) => void;
+  customer: CustomerData;
+  onSelect: (c: CustomerData) => void;
   onDelete: (id: string) => void;
 }
 
 export default function CustomerCard({ customer, onSelect, onDelete }: Props) {
-  const isExpired = new Date(customer.expiryDate) < new Date();
+  const isExpired = new Date(customer.contractEndDate) < new Date();
   const lastVisit = customer.serviceVisits[customer.serviceVisits.length - 1];
 
   return (
@@ -34,7 +28,7 @@ export default function CustomerCard({ customer, onSelect, onDelete }: Props) {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={isExpired ? "destructive" : "default"} className="text-xs">
-              {isExpired ? "Expired" : contractLabels[customer.contractType]}
+              {isExpired ? "Expired" : customer.contractType}
             </Badge>
             <Button
               variant="ghost"
@@ -62,22 +56,22 @@ export default function CustomerCard({ customer, onSelect, onDelete }: Props) {
           <div className="flex items-center gap-2">
             <Calendar className="h-3.5 w-3.5" />
             <span>
-              {customer.installationDate && format(new Date(customer.installationDate), "dd MMM yyyy")}
+              {customer.contractStartDate && format(new Date(customer.contractStartDate), "dd MMM yyyy")}
               {" → "}
-              {customer.expiryDate && format(new Date(customer.expiryDate), "dd MMM yyyy")}
+              {customer.contractEndDate && format(new Date(customer.contractEndDate), "dd MMM yyyy")}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Wrench className="h-3.5 w-3.5" />
             <span>
               {customer.serviceVisits.length} visit{customer.serviceVisits.length !== 1 ? "s" : ""}
-              {lastVisit && ` · Last: ${format(new Date(lastVisit.date), "dd MMM yyyy")}`}
+              {lastVisit && ` · Last: ${format(new Date(lastVisit.visitDate), "dd MMM yyyy")}`}
             </span>
           </div>
         </div>
 
         <div className="mt-3 pt-3 border-t flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">₹{customer.contractAmount.toLocaleString()}</span>
+          <span className="text-xs text-muted-foreground">{customer.contractType}</span>
           <span className="text-xs font-medium text-primary">View Details →</span>
         </div>
       </CardContent>

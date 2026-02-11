@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ServiceVisit } from "@/types/customer";
+import { ServiceVisitData } from "@/hooks/useCustomers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,15 +9,16 @@ import { Wrench } from "lucide-react";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<ServiceVisit, "id">) => void;
+  onSubmit: (data: Omit<ServiceVisitData, "id">) => void;
 }
 
 export default function ServiceVisitForm({ open, onClose, onSubmit }: Props) {
   const [form, setForm] = useState({
-    date: new Date().toISOString().slice(0, 10),
-    description: "",
-    spares: "",
-    techName: "",
+    visitDate: new Date().toISOString().slice(0, 10),
+    serviceType: "",
+    sparesUsed: "",
+    technicianName: "",
+    notes: "",
   });
 
   const set = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
@@ -25,7 +26,7 @@ export default function ServiceVisitForm({ open, onClose, onSubmit }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(form);
-    setForm({ date: new Date().toISOString().slice(0, 10), description: "", spares: "", techName: "" });
+    setForm({ visitDate: new Date().toISOString().slice(0, 10), serviceType: "", sparesUsed: "", technicianName: "", notes: "" });
     onClose();
   };
 
@@ -41,19 +42,23 @@ export default function ServiceVisitForm({ open, onClose, onSubmit }: Props) {
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="visitDate">Date</Label>
-            <Input id="visitDate" type="date" value={form.date} onChange={(e) => set("date", e.target.value)} required />
+            <Input id="visitDate" type="date" value={form.visitDate} onChange={(e) => set("visitDate", e.target.value)} required />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="desc">Description</Label>
-            <Input id="desc" value={form.description} onChange={(e) => set("description", e.target.value)} required />
+            <Label htmlFor="serviceType">Service Type</Label>
+            <Input id="serviceType" value={form.serviceType} onChange={(e) => set("serviceType", e.target.value)} required />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="spares">Spares Used</Label>
-            <Input id="spares" value={form.spares} onChange={(e) => set("spares", e.target.value)} />
+            <Input id="spares" value={form.sparesUsed} onChange={(e) => set("sparesUsed", e.target.value)} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="tech">Technician Name</Label>
-            <Input id="tech" value={form.techName} onChange={(e) => set("techName", e.target.value)} required />
+            <Input id="tech" value={form.technicianName} onChange={(e) => set("technicianName", e.target.value)} required />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="visitNotes">Notes</Label>
+            <Input id="visitNotes" value={form.notes} onChange={(e) => set("notes", e.target.value)} />
           </div>
           <Button type="submit">Add Visit</Button>
         </form>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Customer, ContractType } from "@/types/customer";
+import { CustomerData } from "@/hooks/useCustomers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +10,8 @@ import { Droplets } from "lucide-react";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<Customer, "id" | "serviceVisits">) => void;
-  initial?: Customer;
+  onSubmit: (data: Omit<CustomerData, "id" | "serviceVisits">) => void;
+  initial?: CustomerData;
 }
 
 export default function CustomerForm({ open, onClose, onSubmit, initial }: Props) {
@@ -19,12 +19,12 @@ export default function CustomerForm({ open, onClose, onSubmit, initial }: Props
     name: initial?.name ?? "",
     address: initial?.address ?? "",
     phone: initial?.phone ?? "",
-    installationDate: initial?.installationDate ?? "",
-    expiryDate: initial?.expiryDate ?? "",
     model: initial?.model ?? "",
-    contractType: (initial?.contractType ?? "full") as ContractType,
-    contractDate: initial?.contractDate ?? "",
-    contractAmount: initial?.contractAmount ?? 3000,
+    contractType: initial?.contractType ?? "AMC",
+    installationDate: initial?.installationDate ?? "",
+    contractStartDate: initial?.contractStartDate ?? "",
+    contractEndDate: initial?.contractEndDate ?? "",
+    notes: initial?.notes ?? "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,7 +33,7 @@ export default function CustomerForm({ open, onClose, onSubmit, initial }: Props
     onClose();
   };
 
-  const set = (key: string, value: string | number) =>
+  const set = (key: string, value: string) =>
     setForm((p) => ({ ...p, [key]: value }));
 
   return (
@@ -64,36 +64,34 @@ export default function CustomerForm({ open, onClose, onSubmit, initial }: Props
               <Input id="model" value={form.model} onChange={(e) => set("model", e.target.value)} required />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="installDate">Installation Date</Label>
-              <Input id="installDate" type="date" value={form.installationDate} onChange={(e) => set("installationDate", e.target.value)} required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="expiryDate">Expiry Date</Label>
-              <Input id="expiryDate" type="date" value={form.expiryDate} onChange={(e) => set("expiryDate", e.target.value)} required />
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="installDate">Installation Date</Label>
+            <Input id="installDate" type="date" value={form.installationDate} onChange={(e) => set("installationDate", e.target.value)} required />
+          </div>
+          <div className="grid gap-2">
+            <Label>Contract Type</Label>
+            <Select value={form.contractType} onValueChange={(v) => set("contractType", v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AMC">AMC (Full Contract)</SelectItem>
+                <SelectItem value="Limited">Limited (No Membrane & Pump)</SelectItem>
+                <SelectItem value="PreFilter">Pre Filter Service</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Contract Type</Label>
-              <Select value={form.contractType} onValueChange={(v) => set("contractType", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full">Full Contract (1 Year)</SelectItem>
-                  <SelectItem value="limited">Limited (No Membrane & Pump)</SelectItem>
-                  <SelectItem value="prefilter">Pre Filter Service (1 Year)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="contractStart">Contract Start</Label>
+              <Input id="contractStart" type="date" value={form.contractStartDate} onChange={(e) => set("contractStartDate", e.target.value)} required />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="amount">Contract Amount (₹)</Label>
-              <Input id="amount" type="number" value={form.contractAmount} onChange={(e) => set("contractAmount", Number(e.target.value))} />
+              <Label htmlFor="contractEnd">Contract End</Label>
+              <Input id="contractEnd" type="date" value={form.contractEndDate} onChange={(e) => set("contractEndDate", e.target.value)} required />
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="contractDate">Contract Date</Label>
-            <Input id="contractDate" type="date" value={form.contractDate} onChange={(e) => set("contractDate", e.target.value)} />
+            <Label htmlFor="notes">Notes</Label>
+            <Input id="notes" value={form.notes} onChange={(e) => set("notes", e.target.value)} />
           </div>
           <Button type="submit" className="mt-2">{initial ? "Update" : "Add Customer"}</Button>
         </form>

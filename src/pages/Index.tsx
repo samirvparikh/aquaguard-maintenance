@@ -1,16 +1,21 @@
 import { useState, useMemo } from "react";
-import { useCustomers } from "@/hooks/useCustomers";
-import { Customer } from "@/types/customer";
+import { useCustomers, CustomerData } from "@/hooks/useCustomers";
+import { useAuth } from "@/hooks/useAuth";
 import CustomerCard from "@/components/CustomerCard";
 import CustomerDetail from "@/components/CustomerDetail";
 import CustomerForm from "@/components/CustomerForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Droplets, Plus, Search, Users, Wrench, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Droplets, Plus, Search, Users, Wrench, AlertTriangle, LogOut, Calendar } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
 
 const Index = () => {
-  const { customers, addCustomer, deleteCustomer, addServiceVisit } = useCustomers();
-  const [selected, setSelected] = useState<Customer | null>(null);
+  const { customers, loading, addCustomer, deleteCustomer, addServiceVisit } = useCustomers();
+  const { signOut } = useAuth();
+  const [selected, setSelected] = useState<CustomerData | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -26,14 +31,15 @@ const Index = () => {
     );
   }, [customers, search]);
 
-  const expiringSoon = customers.filter((c) => {
-    const diff = new Date(c.expiryDate).getTime() - Date.now();
-    return diff > 0 && diff < 30 * 24 * 60 * 60 * 1000;
-  });
+  const expiringSoon = useMemo(() =>
+    customers.filter((c) => {
+      const days = differenceInDays(new Date(c.contractEndDate), new Date());
+      return days >= 0 && days <= 30;
+    }).sort((a, b) => new Date(a.contractEndDate).getTime() - new Date(b.contractEndDate).getTime()),
+  [customers]);
 
   const totalVisits = customers.reduce((sum, c) => sum + c.serviceVisits.length, 0);
 
-  // When viewing a customer detail, show the latest data
   const selectedCustomer = selected
     ? customers.find((c) => c.id === selected.id) ?? null
     : null;
@@ -66,12 +72,17 @@ const Index = () => {
             <Droplets className="h-7 w-7 text-primary" />
             <div>
               <h1 className="font-display font-bold text-xl leading-tight">Sai Aqua Service</h1>
-              <p className="text-xs text-muted-foreground">Vijay Rana · 9904747541</p>
+              <p className="text-xs text-muted-foreground">Dashboard</p>
             </div>
           </div>
-          <Button onClick={() => setShowForm(true)} size="sm">
-            <Plus className="h-4 w-4 mr-1" /> New Customer
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setShowForm(true)} size="sm">
+              <Plus className="h-4 w-4 mr-1" /> New Customer
+            </Button>
+            <Button variant="ghost" size="icon" onClick={signOut}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -107,6 +118,55 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Expiring Soon Table */}
+        {expiringSoon.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-display">
+                <AlertTriangle className="h-5 w-5 text-warning" />
+                Expiring Soon (Next 30 Days)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Model</TableHead>
+                      <TableHead>Contract End</TableHead>
+                      <TableHead>Days Left</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {expiringSoon.map((c) => {
+                      const daysLeft = differenceInDays(new Date(c.contractEndDate), new Date());
+                      return (
+                        <TableRow
+                          key={c.id}
+                          className="cursor-pointer"
+                          onClick={() => setSelected(c)}
+                        >
+                          <TableCell className="font-medium">{c.name}</TableCell>
+                          <TableCell>{c.phone}</TableCell>
+                          <TableCell>{c.model}</TableCell>
+                          <TableCell>{format(new Date(c.contractEndDate), "dd MMM yyyy")}</TableCell>
+                          <TableCell>
+                            <Badge variant={daysLeft <= 7 ? "destructive" : "outline"} className="text-xs">
+                              {daysLeft === 0 ? "Today" : `${daysLeft} days`}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -119,7 +179,11 @@ const Index = () => {
         </div>
 
         {/* Customer list */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground animate-pulse">Loading customers...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <Droplets className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
             <p className="text-muted-foreground">
