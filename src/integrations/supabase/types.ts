@@ -14,7 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          address: string
+          contract_end_date: string
+          contract_start_date: string
+          contract_type: string
+          created_at: string
+          id: string
+          installation_date: string
+          model: string
+          name: string
+          notes: string | null
+          phone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          contract_end_date: string
+          contract_start_date: string
+          contract_type?: string
+          created_at?: string
+          id?: string
+          installation_date: string
+          model: string
+          name: string
+          notes?: string | null
+          phone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          contract_end_date?: string
+          contract_start_date?: string
+          contract_type?: string
+          created_at?: string
+          id?: string
+          installation_date?: string
+          model?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      service_visits: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          notes: string | null
+          service_type: string
+          spares_used: string | null
+          technician_name: string
+          user_id: string
+          visit_date: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          notes?: string | null
+          service_type: string
+          spares_used?: string | null
+          technician_name: string
+          user_id: string
+          visit_date: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          service_type?: string
+          spares_used?: string | null
+          technician_name?: string
+          user_id?: string
+          visit_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_visits_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

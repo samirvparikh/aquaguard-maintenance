@@ -1,28 +1,22 @@
 import { useState } from "react";
-import { Customer, ServiceVisit } from "@/types/customer";
+import { CustomerData, ServiceVisitData } from "@/hooks/useCustomers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Phone, MapPin, Calendar, IndianRupee, Wrench, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Phone, MapPin, Calendar, Wrench, FileText } from "lucide-react";
 import { format } from "date-fns";
 import ServiceVisitForm from "./ServiceVisitForm";
 
-const contractLabels = {
-  full: "Full Contract (1 Year)",
-  limited: "Service Contract (No Membrane & Pump)",
-  prefilter: "Pre Filter Service (1 Year)",
-};
-
 interface Props {
-  customer: Customer;
+  customer: CustomerData;
   onBack: () => void;
-  onAddVisit: (customerId: string, visit: Omit<ServiceVisit, "id">) => void;
+  onAddVisit: (customerId: string, visit: Omit<ServiceVisitData, "id">) => void;
 }
 
 export default function CustomerDetail({ customer, onBack, onAddVisit }: Props) {
   const [showVisitForm, setShowVisitForm] = useState(false);
-  const isExpired = new Date(customer.expiryDate) < new Date();
+  const isExpired = new Date(customer.contractEndDate) < new Date();
 
   return (
     <div className="space-y-6">
@@ -63,19 +57,15 @@ export default function CustomerDetail({ customer, onBack, onAddVisit }: Props) 
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-primary" />
-              <span>{contractLabels[customer.contractType]}</span>
+              <span>{customer.contractType}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-primary" />
               <span>
-                {customer.installationDate && format(new Date(customer.installationDate), "dd MMM yyyy")}
+                {customer.contractStartDate && format(new Date(customer.contractStartDate), "dd MMM yyyy")}
                 {" → "}
-                {customer.expiryDate && format(new Date(customer.expiryDate), "dd MMM yyyy")}
+                {customer.contractEndDate && format(new Date(customer.contractEndDate), "dd MMM yyyy")}
               </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <IndianRupee className="h-4 w-4 text-primary" />
-              <span>₹{customer.contractAmount.toLocaleString()}</span>
             </div>
           </CardContent>
         </Card>
@@ -101,7 +91,7 @@ export default function CustomerDetail({ customer, onBack, onAddVisit }: Props) 
                   <TableRow>
                     <TableHead className="w-12">No.</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Service Type</TableHead>
                     <TableHead>Spares</TableHead>
                     <TableHead>Technician</TableHead>
                   </TableRow>
@@ -110,10 +100,10 @@ export default function CustomerDetail({ customer, onBack, onAddVisit }: Props) 
                   {customer.serviceVisits.map((v, i) => (
                     <TableRow key={v.id}>
                       <TableCell className="font-medium">{i + 1}</TableCell>
-                      <TableCell>{format(new Date(v.date), "dd/MM/yy")}</TableCell>
-                      <TableCell>{v.description}</TableCell>
-                      <TableCell>{v.spares || "—"}</TableCell>
-                      <TableCell>{v.techName}</TableCell>
+                      <TableCell>{format(new Date(v.visitDate), "dd/MM/yy")}</TableCell>
+                      <TableCell>{v.serviceType}</TableCell>
+                      <TableCell>{v.sparesUsed || "—"}</TableCell>
+                      <TableCell>{v.technicianName}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
